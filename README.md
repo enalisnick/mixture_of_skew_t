@@ -1,2 +1,3 @@
-# mixture_of_skew_t
-Implementation of EM for a Mixture of Skew (Multivariate) Student-t Distributions
+# Mixtures of Multivarite Skew Student-t Distributions
+
+This repository is a Python implementation of EM for ML estimation of a mixture of skew (multivariate) Student-t distributions.
