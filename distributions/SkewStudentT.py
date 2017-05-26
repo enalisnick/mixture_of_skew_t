@@ -19,15 +19,12 @@ class SkewStudentT(object):
 
 
     def studentT_pdf(self, x):
-
         '''
         output:
             the density of the given element
-
         input:
             x = parameter (d dimensional numpy array or scalar)
         '''
-
         x = np.atleast_2d(x) # requires x as 2d
         nD = self.sigma.shape[0] # dimensionality
 
@@ -48,9 +45,31 @@ class SkewStudentT(object):
 
         return numerator / denominator 
 
+
     def studentT_importance_sampled_cdf(self, x, n_samples=1000):
-        
-        return 
+        approx = 0.
+        N = n_samples
+
+        for s_idx in range(n_samples):
+            sample = [None] * self.dim
+            reject = True
+            while reject and N > 0:
+                sample_pdf = 1.
+                reject = False
+                for d in range(self.dim): 
+                    u = np.random.uniform(low=0., high=1.)
+                    s = np.tan(np.pi*(u-.5))
+                    if x[d] > s: reject = True
+                    sample[d] = s
+                    sample_pdf *= 1./(np.pi * (1 + s*s)) # standard cauchy pdf
+                N -= 1
+
+            sample = np.array(sample)
+            
+            if not reject:
+                approx += self.studentT_pdf(sample)/sample_pdf
+
+        return approx / n_samples
     
 
     def pdf(self, x):
