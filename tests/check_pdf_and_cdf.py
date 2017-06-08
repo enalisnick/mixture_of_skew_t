@@ -8,36 +8,36 @@ if __name__ == '__main__':
 
     ### 1D example
     print "One-dimensional example..."
-    t = SkewStudentT(mu=np.array([0,]), sigma=np.array([1,]))
+    t = SkewStudentT(mu=np.array([0,]), Sigma=np.array([1,]))
     x = np.array([0,])
 
     # compare pdfs
     print "Compare PDFs..."
     print "Scipy: %.5f" %(scipyT.pdf(x, 1, loc=0, scale=1))
-    print "This: %.5f" %(t.studentT_pdf(x=x))
+    print "This: %.5f" %(t.studentT_pdf(y=x))
 
     print
 
     # compare cdfs
     print "Compare CDFs..."
     print "Scipy: %.5f" %(scipyT.cdf(x, 1, loc=0, scale=1))
-    print "This: %.5f" %(t.studentT_importance_sampled_cdf(x=x))
+    print "This: %.5f" %(t.studentT_importance_sampled_cdf(y=x))
 
     print
     print
 
     ### 2D example
     print "Two-dimensional example..."
-    t = SkewStudentT()
+    t = SkewStudentT(mu=np.array([0,0]), Sigma=np.eye(2))
     x = np.array([0,0])
 
     # compare pdfs                                                                                                                               
-    print "This: %.5f" %(t.studentT_pdf(x=x))
+    print "This: %.5f" %(t.studentT_pdf(y=x))
 
     print
 
     # compare cdfs                                                                                                                               
     #print "Scipy: %.5f" %(scipyT.cdf(x, 1, loc=0, scale=1))
-    print "This: %.5f" %(t.studentT_importance_sampled_cdf(x=x))
+    print "This: %.5f" %(t.studentT_importance_sampled_cdf(y=x))
     
 
