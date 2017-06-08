@@ -11,6 +11,7 @@ class SkewStudentT(object):
 
         # check that parameters are correct sizes
         assert dim == mu.shape[0] 
+        assert dim == delta.shape[0]
         assert deg_of_freedom > 0
 
         self.dim = dim
@@ -61,7 +62,7 @@ class SkewStudentT(object):
                     )
                 )
 
-        return (numerator / denominator)[0] 
+        return (numerator / denominator)[0]
 
 
     def studentT_importance_sampled_cdf(self, y, mu=None, Sigma=None, df=None, n_samples=10000):
@@ -111,5 +112,5 @@ class SkewStudentT(object):
         y1 = q * np.sqrt( (self.df + self.dim)/(self.df + dy) )
 
         return 2**self.dim * self.studentT_pdf(y, mu=self.mu, Sigma=Omega, df=self.df) * \
-            self.studentT_importance_sampled_cdf(y1, mu=0.*mu, Sigma=Lambda, df=df+self.dim, n_samples=n_samples)
+            self.studentT_importance_sampled_cdf(y1, mu=0.*self.mu, Sigma=Lambda, df=self.df+self.dim, n_samples=n_samples)
 
