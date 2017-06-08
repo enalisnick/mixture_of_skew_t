@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.special import digamma
+
 from SkewStudentT import SkewStudentT
 
 
@@ -9,39 +11,43 @@ class MixSkewStudentT(object):
         # check parameters are correct
         assert nb_components > 1
         
+        self.dim = dim
         self.nb_components = nb_components
+        self.weights = [1./self.nb_components for k in xrange(self.nb_components)]
         self.component_dists = [SkewStudentT() for k in range(self.nb_components)]
 
 
-    def estimate(self, max_iterations=100):
-        
-        for iter_idx in range(max_iterations):
-            
-            self.perform_E_step()
-            self.perform_M_step()
+    def estimate(self, data, max_iterations=100):
+        n,d = data.shape
+        assert d == self.components_dists[0].dim
+
+        params = {'tau':np.zeros(n,self.nb_components), 
+                  'e':[np.zeros(n,self.nb_components) for i in xrange(4)]
+                  }
+
+        for k in range(max_iterations):
+            self.perform_E_step(data, params)
+            self.perform_M_step(data, params)
+
+        return params
 
 
-    def perform_E_step(self, X):
-        
-        ### update mixture weights
-        tau = [None]*self.nb_components
-        mix_weight_normalizer = 0.
+    def perform_E_step(self, Y, params):
+        n,d = Y.shape
 
-        for h in range(self.nb_components):
-            tau[h] = self.pi[h] * self.component_dists[h].pdf(X)
-            mix_weight_normalizer += tau[h]
-        
-        for h in range(self.nb_components):
-            tau[h] /= mix_weight_normalizer
+        for j in xrange(n):
+            ### posterior membership prob
+            for h in range(self.nb_components):
+                params['tau'][j,h] = self.weights[h] * self.component_dists[h].pdf(Y[j])
+            params['tau'][j,:] /= params['tau'][j,:].sum()
 
-
-        ### update e variables
-        for h in range(self.nb_components):
-            S = 0 ### Infinite integral?
-            e1[h] = psi(self.component_dists[h].degrees_of_freedom/2. + self.dims) - np.log( self.component_dists[h].degrees_of_freedom + d[h](y)/2. ) - T_inv(y)*S
-            e2[h] = (self.component_dists[h].degrees_of_freedom + self.dims)/(self.component_dists[h].degrees_of_freedom + d[h]) * T()/T()
-            e3[h] = e2[h] * E(x | y)
-            e4[h] = e[2] * E(X * X.T | y)
+            ### update e variables
+            for h in range(self.nb_components):
+                S = 0 ### Infinite integral?
+                e[0][j,h] = digamma(self.component_dists[h].df/2. + self.dim) - np.log((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/2.) - T_inv(y)*S
+                e[1][j,h] = (self.component_dists[h].degrees_of_freedom + self.dim)/(self.component_dists[h].degrees_of_freedom + d[h]) * T()/T()
+                e[2][j,h] = e2[h] * E(x | y)
+                e[3][j,h] = e[2] * E(X * X.T | y)
 
         return 
 
