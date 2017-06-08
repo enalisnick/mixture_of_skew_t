@@ -26,7 +26,7 @@ class MixSkewStudentT(object):
                   }
 
         for k in range(max_iterations):
-            self.perform_E_step(data, params)
+            params = self.perform_E_step(data, params)
             self.perform_M_step(data, params)
 
         return params
@@ -44,12 +44,19 @@ class MixSkewStudentT(object):
             ### update e variables
             for h in range(self.nb_components):
                 S = 0 ### Infinite integral?
-                e[0][j,h] = digamma(self.component_dists[h].df/2. + self.dim) - np.log((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/2.) - T_inv(y)*S
-                e[1][j,h] = (self.component_dists[h].degrees_of_freedom + self.dim)/(self.component_dists[h].degrees_of_freedom + d[h]) * T()/T()
-                e[2][j,h] = e2[h] * E(x | y)
-                e[3][j,h] = e[2] * E(X * X.T | y)
 
-        return 
+                params['e'][0][j,h] = digamma(self.component_dists[h].df/2. + self.dim) - np.log((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/2.) - T_inv(y)*S
+
+                params['e'][1][j,h] = (self.component_dists[h].df + self.dim)/(self.component_dists[h].df + self.component_dists[h].get_d(Y[j])) * \
+                    self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2)/\
+                    self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim)
+
+                epsilon = 
+                params['e'][2][j,h] = e[1][j,h] * (self.component_dists[h] + epsilon)
+
+                params['e'][3][j,h] = e[1][j,h] * E(X * X.T | y)
+
+        return params
 
 
     def perform_M_step(self):

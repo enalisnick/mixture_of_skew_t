@@ -18,10 +18,6 @@ class StudentT(object):
         self.Sigma = Sigma
         self.df = deg_of_freedom
 
-        
-        
-        np.dot(np.dot((y - self.mu).T, np.linalg.inv(Omega)), (y - self.mu))
-
 
     def pdf(self, y, mu=None, Sigma=None, df=None):
         '''

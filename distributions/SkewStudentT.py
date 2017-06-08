@@ -25,25 +25,23 @@ class SkewStudentT(object):
         self.stdT = StudentT(mu=self.mu, Sigma=self.Sigma, df=self.df)
 
         # compute auxiliary variables
-        self.Omega = 
+        # for pdf
+        Delta = np.diag(self.delta)
+        self.Omega = self.Sigma + np.dot(Delta, Delta)
 
+        # for cdf
+        Lambda = np.eye(self.dim) - np.dot(np.dot(Delta, np.linalg.inv(self.Omega)), Delta)
+        
 
     def get_d(self, y):
-        
-        np.dot(np.dot((y - self.mu).T, np.linalg.inv(Omega)), (y - self.mu))
+        return np.dot(np.dot((y - self.mu).T, np.linalg.inv(self.Omega)), (y - self.mu))
 
 
     def pdf(self, y, n_samples=10000):
         # unrestricted skew student T pdf
-        
-        # PDF variables
-        Delta = np.diag(self.delta)
-        Omega = self.Sigma + np.dot(Delta, Delta)
 
-        # CDF variables
-        Lambda = np.eye(self.dim) - np.dot(np.dot(Delta, np.linalg.inv(Omega)), Delta)
         q = np.dot(np.dot(Delta, np.linalg.inv(Omega)), y-self.mu)
-        dy = np.dot(np.dot((y - self.mu).T, np.linalg.inv(Omega)), (y - self.mu))
+        dy = self.get_d(y)
         y1 = q * np.sqrt( (self.df + self.dim)/(self.df + dy) )
 
         return 2**self.dim * self.stdT.pdf(y, Sigma=self.Omega) * self.stdT.impSamp_cdf(y1, mu=0.*self.mu, Sigma=Lambda, df=self.df+self.dim, n_samples=n_samples)
