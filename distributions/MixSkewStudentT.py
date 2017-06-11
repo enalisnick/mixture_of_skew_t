@@ -34,7 +34,8 @@ class MixSkewStudentT(object):
 
     def perform_E_step(self, Y, params):
         n,d = Y.shape
-
+        a = np.amin(Y) # for computing E[x]
+        
         for j in xrange(n):
             ### posterior membership prob
             for h in range(self.nb_components):
@@ -51,9 +52,15 @@ class MixSkewStudentT(object):
                     self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2)/\
                     self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim)
 
-                epsilon = 
+                # compute moment E[x]
+                c = self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].mu - a, mu = 0) 
+                a_star = 
+                Sigma_star = 
+                zi = 
+                epsilon = 1./c * self.component_dists[h].Sigma * zi 
                 params['e'][2][j,h] = e[1][j,h] * (self.component_dists[h] + epsilon)
 
+                # compute moment E[xx]
                 params['e'][3][j,h] = e[1][j,h] * E(X * X.T | y)
 
         return params
