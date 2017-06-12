@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.special import digamma
+from scipy.special import digamma, gamma
 
 from SkewStudentT import SkewStudentT
 
@@ -53,15 +53,43 @@ class MixSkewStudentT(object):
                     self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim)
 
                 # compute moment E[x]
-                c = self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].mu - a, mu = 0) 
-                a_star = 
-                Sigma_star = 
-                zi = 
-                epsilon = 1./c * self.component_dists[h].Sigma * zi 
-                params['e'][2][j,h] = e[1][j,h] * (self.component_dists[h] + epsilon)
+                c = self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].mu - a, mu = 0.)
+                zi = np.zeros(self.component_dists[h].mu.shape)
+
+                for d in range(self.dim):
+                    mu_minus_d = np.delete(self.component_dists[h].mu, d, axis=0)
+                    Sigma_minus_d = np.delete(np.delete(self.component_dists[h].Sigma, d, axis=0), d, axis=1)
+                    sigma_d = np.delete(self.component_dists[h].Sigma[:,d], d, axis=0)
+
+                    a_star = (mu_temp-a) - (mu_temp-a) * 1./self.component_dists[h].Sigma[d,d]
+                    Sigma_star = (self.component_dists[h].df + 1./self.component_dists[h].Sigma[d,d] * (self.component_dists[h].mu[d] - a)**2)/(self.component_dists[h].df-1) *\
+                        Sigma_minus_d - 1./self.component_dists[h].Sigma[d,d] * np.dot(sigma_d, sigma_d.T)
+
+                    zi[d] = 1./(2*np.pi*self.component_dists[h].Sigma[d,d]) * (self.component_dists[h].df/(self.component_dists[h].df+(1./self.component_dists[h].Sigma[d,d])*(self.component_dists[h].mu[d] - a)**2))**((self.component_dists[h].df-1)/2.) * np.sqrt(self.component_dists[h].df/2) * gamma((self.component_dists[h].df-1)/2.)/gamma(self.component_dists[h].df/2.) * self.component_dists[h].stdT.impSamp_cdf(a_star, mu = 0., Sigma = Sigma_star, df=self.component_dists[h].df-1)
+
+                epsilon = 1./c * np.dot(self.component_dists[h].Sigma, zi)
+                E_x = self.component_dists[h].mu + epsilon
+
+                params['e'][2][j,h] = e[1][j,h] * E_x
 
                 # compute moment E[xx]
-                params['e'][3][j,h] = e[1][j,h] * E(X * X.T | y)
+                H = np.zeros((self.dim, self.dim))
+                for i in range(self.dim):
+                    for j in range(self.dim):
+                        if j != i:
+                            mu_ij = self.component_dists[h].mu[[i,j]]
+                            Sigma_ij = np.array([[self.component_dists[h].Sigma[i,i], self.component_dists[h].Sigma[i,j]], [self.component_dists[h].Sigma[j,i], self.component_dists[h].Sigma[j,j]]])
+                            df_star = self.component_dists[h].df + np.dot(np.dot((mu_ij - a).T, inv(Sigma_ij)), mu_ij - a) 
+
+                            H[i,j] = 1./(2 * np.pi * np.sqrt(self.component_dists[h].Sigma[i,i]*self.component_dists[h].Sigma[j,j] - self.component_dists[h].Sigma[i,j]**2))
+                            H[i,j] *= (self.component_dists[h].df)/(self.component_dists[h].df-2) * (self.component_dists[h].df/df_star)**(self.component_dists[h].df/2 - 1)
+                            H[i,j] *= self.component_dists[h].stdT.impSamp_cdf(a_star_star, mu = 0., Sigma = Sigma_star_star, df = self.component_dists[h].df-2)
+                        
+                    H[i,i] = 1./self.component_dists[h].Sigma[i,i] * ((self.component_dists[h].mu[i] - a) * zi[i] - np.sum([self.component_dists[h].Sigma[i,k]*h[i,k] for k in range(self.dim) if k!=i])) 
+
+                E_xx = np.dot(self.component_dists[h].mu, self.component_dists[h].mu.T) + np.dot(self.component_dists[h].mu, epsilon.T) + np.dot(epsilon, self.component_dists[h].mu.T) - 1./c * np.dot(np.dot(self.component_dists[h].Sigma, H), self.component_dists[h].Sigma) + 1./c * (self.component_dists[h].df)/(self.component_dists[h].df-2) * self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].mu - a, mu = 0., Sigma = (self.component_dists[h].df)/(self.component_dists[h].df-2) * self.component_dists[h].Sigma, df = self.component_dists[h].df-2) * self.component_dists[h].Sigma 
+                
+                params['e'][3][j,h] = e[1][j,h] * E_xx
 
         return params
 
