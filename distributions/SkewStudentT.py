@@ -26,15 +26,21 @@ class SkewStudentT(object):
 
         # compute auxiliary variables
         # for pdf
-        Delta = np.diag(self.delta)
+        self.Delta = np.diag(self.delta)
         self.Omega = self.Sigma + np.dot(Delta, Delta)
 
         # for cdf
-        Lambda = np.eye(self.dim) - np.dot(np.dot(Delta, np.linalg.inv(self.Omega)), Delta)
+        self.Lambda = np.eye(self.dim) - np.dot(np.dot(Delta, np.linalg.inv(self.Omega)), Delta)
         
 
     def get_d(self, y):
         return np.dot(np.dot((y - self.mu).T, np.linalg.inv(self.Omega)), (y - self.mu))
+
+
+    def update_aux_params(self):
+        self.Delta = np.diag(self.delta)
+        self.Omega = self.Sigma + np.dot(Delta, Delta)
+        self.Lambda = np.eye(self.dim) - np.dot(np.dot(self.Delta, np.linalg.inv(self.Omega)), self.Delta)
 
 
     def pdf(self, y, n_samples=10000):
