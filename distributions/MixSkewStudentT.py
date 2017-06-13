@@ -77,9 +77,22 @@ class MixSkewStudentT(object):
                 for i in range(self.dim):
                     for j in range(self.dim):
                         if j != i:
+                            # precompute the necessary slices
                             mu_ij = self.component_dists[h].mu[[i,j]]
-                            Sigma_ij = np.array([[self.component_dists[h].Sigma[i,i], self.component_dists[h].Sigma[i,j]], [self.component_dists[h].Sigma[j,i], self.component_dists[h].Sigma[j,j]]])
+                            Sigma_ij = np.array([[self.component_dists[h].Sigma[i,i], self.component_dists[h].Sigma[i,j]], [self.component_dists[h].Sigma[j,i], self.component_dists[h].Si\
+gma[j,j]]])
+                            if j > i:
+                                mu_negij = np.delete(np.delete(self.component_dists[h].mu,i, axis=0), j-1, axis=0)
+                                Sigma_parenij = np.delete(np.delete(self.component_dists[h].Sigma[:,[i,j]], i, axis=0), j-1, axis=0)
+                                Sigma_negij = np.delete(np.delete(np.delete(np.delete(self.component_dists[h].Sigma, i, axis=0), j-1, axis=0), i, axis=1), j-1, axis=1)
+                            else:
+                                mu_negij = np.delete(np.delete(self.component_dists[h].mu,i, axis=0), j, axis=0)
+                                Sigma_parenij = np.delete(np.delete(self.component_dists[h].Sigma[:,[i,j]], i, axis=0), j, axis=0)
+                                Sigma_negij = np.delete(np.delete(np.delete(np.delete(self.component_dists[h].Sigma, i, axis=0), j, axis=0), i, axis=1), j, axis=1)
+
                             df_star = self.component_dists[h].df + np.dot(np.dot((mu_ij - a).T, inv(Sigma_ij)), mu_ij - a) 
+                            a_star_star = (mu_negij - a) - np.dot(np.dot(Sigma_parenij, inv(Sigma_ij)), mu_negij - a)
+                            Sigma_star_star = df_star/(self.component_dists[h].df - 2) * (Sigma_negij - np.dot(np.dot(Sigma_parenij, inv(Sigma_ij)), Sigma_parenij.T))
 
                             H[i,j] = 1./(2 * np.pi * np.sqrt(self.component_dists[h].Sigma[i,i]*self.component_dists[h].Sigma[j,j] - self.component_dists[h].Sigma[i,j]**2))
                             H[i,j] *= (self.component_dists[h].df)/(self.component_dists[h].df-2) * (self.component_dists[h].df/df_star)**(self.component_dists[h].df/2 - 1)
