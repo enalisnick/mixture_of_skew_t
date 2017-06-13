@@ -77,6 +77,7 @@ class MixSkewStudentT(object):
                 for i in range(self.dim):
                     for j in range(self.dim):
                         if j != i:
+
                             # precompute the necessary slices
                             mu_ij = self.component_dists[h].mu[[i,j]]
                             Sigma_ij = np.array([[self.component_dists[h].Sigma[i,i], self.component_dists[h].Sigma[i,j]], [self.component_dists[h].Sigma[j,i], self.component_dists[h].Si\
@@ -107,18 +108,20 @@ gma[j,j]]])
         return params
 
 
-    def perform_M_step(self):
-        
-        ### update means
+    def perform_M_step(self, Y, params):
+        n,d = Y.shape
+
         for h in range(self.nb_components):
             mu_numerator = 0.
             mu_denominator = 0.
-            for j in range(N):
-                mu_numerator += tau[h][j] * (e2[h][j]*y - p_delta[h]*e3[h][j])
-                mu_denominator += tau[h][j] * e2[h][j]
-            self.mu[h] = mu_numerator / mu_denominator
+            
+            for j in range(n):
+                mu_numerator += params['tau'][j,h] * (params['e'][1][j,h]*Y[j,:] - self.component_dists[h].Delta * params['e'][2][j,h])
+                mu_denominator += params['tau'][j,h] * params['e'][1][j,h]
+            
+            self.component_dists[h].mu = mu_numerator / mu_denominator
 
-        for h in range(self.nb_components):
+        
             delta_partial1 = 0.
             delta_partial2 = 0.
             for j in range(N):
