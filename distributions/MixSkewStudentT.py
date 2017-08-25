@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.special import digamma, gamma
+from scipy.optimize import minimize_scalar
 
 from SkewStudentT import SkewStudentT
 
@@ -150,9 +151,13 @@ gma[j,j]]])
             ### update degrees of freedom
             tmp = 0.
             for j in range(n):
-                tmp1 += params['tau'][j,h] * (params['e'][1][j,h] - params['e'][0][j,h])
+                tmp += params['tau'][j,h] * (params['e'][1][j,h] - params['e'][0][j,h])
+            tmp = tmp/np.sum(params['tau'][:,h])
 
-            # THIS IS NOT CORRECT; NEED ITERATIVE SOLVING
-            self.component_dists[h].df = tmp/np.sum(params['tau'][:,h])
+            def df_eq(x):
+                return np.log(x/2.) - digamma(x/2.) + 1. - tmp
+            
+            result = minimize_scalar(df_eq, bounds=(0, 100))
+            self.component_dists[h].df = result.x
 
         return 
