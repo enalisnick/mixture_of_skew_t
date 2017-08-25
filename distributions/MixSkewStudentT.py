@@ -32,7 +32,7 @@ class MixSkewStudentT(object):
         return params
 
 
-    def perform_E_step(self, Y, params):
+    def perform_E_step(self, Y, params, terms_in_int_approx=5):
         n,d = Y.shape
         a = np.amin(Y) # for computing E[x]
         
@@ -44,7 +44,13 @@ class MixSkewStudentT(object):
 
             ### update e variables
             for h in range(self.nb_components):
-                S = 0 ### Infinite integral?
+
+                # S integral
+                S = gamma((self.component_dists[h].df + 2.*self.dim)/2.) / gamma((self.component_dists[h].df + self.dim)/2.)
+                for r in xrange(terms_in_int_approx):
+                    r += 1
+                    for s in xrange(r):
+                        S += ((-1)**(2*r-s-1) / r) * (gamma(r+1)/(gamma(s+1)*gamma(r-s+1))) * gamma((self.component_dists[h].df + self.dim)/2. + s) / gamma((self.component_dists[h].df + 2.*self.dim)/2. + s) * self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].get_c(Y[j]), mu=0., Sigma=((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/(self.component_dists[h].df + self.dim + 2.*s))*self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2.*s)  
 
                 params['e'][0][j,h] = digamma(self.component_dists[h].df/2. + self.dim) - np.log((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/2.) - T_inv(y)*S
 

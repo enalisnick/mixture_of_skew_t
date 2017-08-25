@@ -37,6 +37,10 @@ class SkewStudentT(object):
         return np.dot(np.dot((y - self.mu).T, np.linalg.inv(self.Omega)), (y - self.mu))
 
 
+    def get_c(self, y):
+        return np.dot(np.dot(self.Delta, np.linalg.inv(self.Omega)), (y - self.mu))
+
+
     def update_aux_params(self):
         self.Delta = np.diag(self.delta)
         self.Omega = self.Sigma + np.dot(Delta, Delta)
