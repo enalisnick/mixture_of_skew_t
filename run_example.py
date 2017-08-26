@@ -45,11 +45,11 @@ if __name__ == '__main__':
 
     # DATA PARAMS
     # Create datasets and experiments folders is needed.
-    dataset_dir = mkdirs("./datasets")
-    mkdirs(args.experiment_dir)
-    dataset = pjoin(dataset_dir, args.dataset + ".npz")
-    print "Datasets dir: {}".format(os.path.abspath(dataset_dir))
-    print "Experiment dir: {}".format(os.path.abspath(args.experiment_dir))
+    #dataset_dir = os.mkdir("./datasets")
+    #os.mkdir(args.experiment_dir)
+    #dataset = pjoin(dataset_dir, args.dataset + ".npz")
+    #print "Datasets dir: {}".format(os.path.abspath(dataset_dir))
+    #print "Experiment dir: {}".format(os.path.abspath(args.experiment_dir))
 
     model = MixSkewStudentT( nb_components=args.nb_components )
 

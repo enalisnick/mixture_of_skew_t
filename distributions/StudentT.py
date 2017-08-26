@@ -4,19 +4,19 @@ from math import *
 
 class StudentT(object):
 
-    def __init__(self, mu=np.zeros(2,), Sigma=np.eye(2), delta=np.ones(2,), deg_of_freedom=1): 
+    def __init__(self, mu=np.zeros(2,), Sigma=np.eye(2), delta=np.ones(2,), df=1): 
         
         # fancy init here
         dim = Sigma.shape[0]
 
         # check that parameters are correct sizes
         assert dim == mu.shape[0] 
-        assert deg_of_freedom > 0
+        assert df > 0
 
         self.dim = dim
         self.mu = mu
         self.Sigma = Sigma
-        self.df = deg_of_freedom
+        self.df = df
 
 
     def pdf(self, y, mu=None, Sigma=None, df=None):

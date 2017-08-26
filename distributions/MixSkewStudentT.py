@@ -7,7 +7,7 @@ from SkewStudentT import SkewStudentT
 
 class MixSkewStudentT(object):
 
-    def __init__(self, rng, nb_components=2): 
+    def __init__(self, dim=1, nb_components=2): 
         
         # check parameters are correct
         assert nb_components > 1
@@ -86,8 +86,7 @@ class MixSkewStudentT(object):
                         if j != i:
                             # precompute the necessary slices
                             mu_ij = self.component_dists[h].mu[[i,j]]
-                            Sigma_ij = np.array([[self.component_dists[h].Sigma[i,i], self.component_dists[h].Sigma[i,j]], [self.component_dists[h].Sigma[j,i], self.component_dists[h].Si\
-gma[j,j]]])
+                            Sigma_ij = np.array([[self.component_dists[h].Sigma[i,i], self.component_dists[h].Sigma[i,j]], [self.component_dists[h].Sigma[j,i], self.component_dists[h].Sigma[j,j]]])
                             if j > i:
                                 mu_negij = np.delete(np.delete(self.component_dists[h].mu,i, axis=0), j-1, axis=0)
                                 Sigma_parenij = np.delete(np.delete(self.component_dists[h].Sigma[:,[i,j]], i, axis=0), j-1, axis=0)
