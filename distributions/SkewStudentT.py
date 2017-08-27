@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.random
 from math import *
 from StudentT import *
 
@@ -56,3 +57,10 @@ class SkewStudentT(object):
 
         return 2**self.dim * self.stdT.pdf(y, Sigma=self.Omega) * self.stdT.impSamp_cdf(y1, mu=0.*self.mu, Sigma=Lambda, df=self.df+self.dim, n_samples=n_samples)
 
+
+    def draw_sample(self):
+        w = np.random.gamma(shape = self.df/2., scale = 2./self.df)
+        u = np.abs(np.random.multivariate_normal(mean = np.zeros(self.dim,), shape = 1./w * np.eye(self.dim))) 
+        y = np.random.multivariate_normal(mean = self.mu + np.dot(self.Delta, u), cov = 1./w * self.Sigma)
+        
+        return y

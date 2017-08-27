@@ -8,11 +8,9 @@ def build_argparser():
     DESCRIPTION = ("Train a Mixture of Skew Multivariate Student-t Distributions.")
     p = argparse.ArgumentParser(description=DESCRIPTION)
 
-    dataset = p.add_argument_group("Experiment options")
-    dataset.add_argument('--dataset', default="test1", choices=["test1"],
-                         help="Input dataset. Default:%(default)s")
-
     model = p.add_argument_group("Model options")
+    model.add_argument('--dimensionality', type=int, default=2,
+                         help='Dimensionality of mixture. Default:%(default)s')
     model.add_argument('--nb-components', type=int, default=2,
                          help='Number of components in mixture model. Default:%(default)s')
 
@@ -23,10 +21,16 @@ def build_argparser():
                           help='train for a maximum of N epochs. Default: %(default)s')
 
     general = p.add_argument_group("General arguments")
-    general.add_argument('--experiment-dir', default="./experiments/",
+    general.add_argument('--experiment-dir', default="./experiments/simulation",
                          help='name of the folder where to save the experiment. Default: %(default)s.')
 
     return p
+
+
+def simulate_unrestricted_skewT_mixture():
+    
+
+    return 
 
 
 if __name__ == '__main__':
@@ -44,12 +48,7 @@ if __name__ == '__main__':
 
 
     # DATA PARAMS
-    # Create datasets and experiments folders is needed.
-    #dataset_dir = os.mkdir("./datasets")
-    #os.mkdir(args.experiment_dir)
-    #dataset = pjoin(dataset_dir, args.dataset + ".npz")
-    #print "Datasets dir: {}".format(os.path.abspath(dataset_dir))
-    #print "Experiment dir: {}".format(os.path.abspath(args.experiment_dir))
+    
 
     model = MixSkewStudentT( nb_components=args.nb_components )
 
