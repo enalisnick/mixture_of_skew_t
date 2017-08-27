@@ -6,7 +6,7 @@ from StudentT import *
 
 class SkewStudentT(object):
 
-    def __init__(self, mu=np.zeros(2,), Sigma=np.eye(2), delta=np.ones(2,), deg_of_freedom=1): 
+    def __init__(self, mu=np.zeros(2,), Sigma=np.eye(2), delta=np.ones(2,), df=1): 
         
         # fancy init here
         dim = Sigma.shape[0]
@@ -14,13 +14,13 @@ class SkewStudentT(object):
         # check that parameters are correct sizes
         assert dim == mu.shape[0] 
         assert dim == delta.shape[0]
-        assert deg_of_freedom > 0
+        assert df > 0
 
         self.dim = dim
         self.mu = mu
         self.Sigma = Sigma
         self.delta = delta
-        self.df = deg_of_freedom
+        self.df = df
 
         # multivariate student T
         self.stdT = StudentT(mu=self.mu, Sigma=self.Sigma, df=self.df)
@@ -60,7 +60,7 @@ class SkewStudentT(object):
 
     def draw_sample(self):
         w = np.random.gamma(shape = self.df/2., scale = 2./self.df)
-        u = np.abs(np.random.multivariate_normal(mean = np.zeros(self.dim,), shape = 1./w * np.eye(self.dim))) 
+        u = np.abs(np.random.multivariate_normal(mean = np.zeros(self.dim,), cov = 1./w * np.eye(self.dim))) 
         y = np.random.multivariate_normal(mean = self.mu + np.dot(self.Delta, u), cov = 1./w * self.Sigma)
         
         return y

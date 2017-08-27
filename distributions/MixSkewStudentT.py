@@ -7,15 +7,24 @@ from SkewStudentT import SkewStudentT
 
 class MixSkewStudentT(object):
 
-    def __init__(self, dim=1, nb_components=2): 
+    def __init__(self, dim=1, nb_components=2, weights=None, mus=None, Sigmas=None, deltas=None, dfs=None): 
         
         # check parameters are correct
         assert nb_components > 1
-        
+                
+
         self.dim = dim
         self.nb_components = nb_components
-        self.weights = [1./self.nb_components for k in xrange(self.nb_components)]
-        self.component_dists = [SkewStudentT() for k in range(self.nb_components)]
+
+        if weights == None:
+            self.weights = [1./self.nb_components for k in xrange(self.nb_components)]
+        else:
+            self.weights = weights
+
+        if mus == None:
+            self.component_dists = [SkewStudentT() for k in range(self.nb_components)]
+        else:
+            self.component_dists = [SkewStudentT(mu=mus[k], Sigma=Sigmas[k], delta=deltas[k], df=dfs[k]) for k in range(self.nb_components)]
 
 
     def estimate(self, data, max_iterations=100):
@@ -160,3 +169,18 @@ class MixSkewStudentT(object):
             self.component_dists[h].df = result.x
 
         return 
+
+
+    def draw_sample(self, nb_samples=500):
+        samples = []
+        comp_idxs = np.random.multinomial(n=nb_samples, pvals=self.weights)
+
+        for k, dist in enumerate(self.component_dists):
+            for i in range(comp_idxs[k]):
+                samples.append(dist.draw_sample())
+
+        samples = np.array(samples)
+        np.random.shuffle(samples)
+
+        return samples
+        

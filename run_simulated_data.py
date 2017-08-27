@@ -1,4 +1,5 @@
 import argparse
+import random
 import os
 from os.path import join as pjoin
 
@@ -27,12 +28,6 @@ def build_argparser():
     return p
 
 
-def simulate_unrestricted_skewT_mixture():
-    
-
-    return 
-
-
 if __name__ == '__main__':
     random_seed = 1234
 
@@ -43,12 +38,24 @@ if __name__ == '__main__':
     args_string = ''.join('{}_{}_'.format(key, val) for key, val in sorted(args_dict.items()) if key not in ['experiment_dir','lookahead','max_epoch'])[:-1]
 
     # Check the parameters are correct.
-    if args.nb_components < 1:
+    if args_dict['nb_components'] < 1:
         raise ValueError("Number of components must be a positive integer.")
 
 
     # DATA PARAMS
-    
+    ### true model
+    means = [np.array([3.,1.]), np.array([0.,0.])]
+    covs = [np.array([[2., 0.],[0., 3.]]), np.eye(args_dict['dimensionality'])]
+    skews = [np.array([1.2, 4.5]), np.array([2., 6.])]
+    dfs = [2,3]
+    n_data = 1000
 
-    model = MixSkewStudentT( nb_components=args.nb_components )
+    ### simulate data from true model
+    true_model = MixSkewStudentT(mus=[np.array([3.,1.]), np.array([0.,0.])], Sigmas=[np.array([[2., 0.],[0., 3.]]), np.eye(args_dict['dimensionality'])], \
+                                     nb_components=args_dict['nb_components'], deltas=skews, dfs=dfs)
+    data = true_model.draw_sample(n_data)
 
+    print data
+
+    # INIT MODEL FOR LEARNING
+    #model = MixSkewStudentT( nb_components=args.nb_components )
