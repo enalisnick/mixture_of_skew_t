@@ -3,6 +3,7 @@ import random
 import os
 from os.path import join as pjoin
 
+import matplotlib.pyplot as plt
 from distributions.MixSkewStudentT import *
 
 def build_argparser():
@@ -44,18 +45,20 @@ if __name__ == '__main__':
 
     # DATA PARAMS
     ### true model
-    means = [np.array([3.,1.]), np.array([0.,0.])]
+    means = [np.array([20.,20.]), np.array([-20.,-20.])]
     covs = [np.array([[2., 0.],[0., 3.]]), np.eye(args_dict['dimensionality'])]
     skews = [np.array([1.2, 4.5]), np.array([2., 6.])]
+    weights = [.1, .9]
     dfs = [2,3]
-    n_data = 1000
+    n_data = 10000
 
     ### simulate data from true model
-    true_model = MixSkewStudentT(mus=[np.array([3.,1.]), np.array([0.,0.])], Sigmas=[np.array([[2., 0.],[0., 3.]]), np.eye(args_dict['dimensionality'])], \
-                                     nb_components=args_dict['nb_components'], deltas=skews, dfs=dfs)
+    true_model = MixSkewStudentT(mus=means, Sigmas=covs, nb_components=args_dict['nb_components'], deltas=skews, dfs=dfs, weights=weights)
     data = true_model.draw_sample(n_data)
-
-    print data
+    plt.scatter(data[:,0], data[:,1], marker='x', s=10, c='k', alpha=.2)
+    plt.xlim([-50,  50])
+    plt.ylim([-50, 100])
+    #plt.show()
 
     # INIT MODEL FOR LEARNING
-    #model = MixSkewStudentT( nb_components=args.nb_components )
+    model = MixSkewStudentT( nb_components=args.nb_components )
