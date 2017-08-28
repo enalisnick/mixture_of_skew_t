@@ -69,16 +69,18 @@ class StudentT(object):
         if Sigma is None: Sigma = self.Sigma
         if df is None: df = self.df
 
+        dim = mu.shape[0]
+
         approx = 0.
         N = n_samples
 
         for s_idx in range(n_samples):
-            sample = [None] * self.dim
+            sample = [None] * dim
             reject = True
             while reject and N > 0:
                 proposal_pdf = 1.
                 reject = False
-                for d in range(self.dim): 
+                for d in range(dim): 
                     u = np.random.uniform(low=0., high=1.)
                     s = np.tan(np.pi*(u-.5))
                     if y[d] > s: 
@@ -91,6 +93,6 @@ class StudentT(object):
             sample = np.array(sample)
             
             if not reject:
-                approx += self.studentT_pdf(sample, mu, Sigma, df)/proposal_pdf
+                approx += self.pdf(sample, mu, Sigma, df)/proposal_pdf
 
         return 1 - approx / n_samples

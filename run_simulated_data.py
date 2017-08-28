@@ -62,3 +62,4 @@ if __name__ == '__main__':
 
     # INIT MODEL FOR LEARNING
     model = MixSkewStudentT( nb_components=args.nb_components )
+    model.estimate(data)

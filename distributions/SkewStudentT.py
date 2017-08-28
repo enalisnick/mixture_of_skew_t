@@ -51,11 +51,11 @@ class SkewStudentT(object):
     def pdf(self, y, n_samples=10000):
         # unrestricted skew student T pdf
 
-        q = np.dot(np.dot(Delta, np.linalg.inv(Omega)), y-self.mu)
+        q = np.dot(np.dot(self.Delta, np.linalg.inv(self.Omega)), y-self.mu)
         dy = self.get_d(y)
         y1 = q * np.sqrt( (self.df + self.dim)/(self.df + dy) )
 
-        return 2**self.dim * self.stdT.pdf(y, Sigma=self.Omega) * self.stdT.impSamp_cdf(y1, mu=0.*self.mu, Sigma=Lambda, df=self.df+self.dim, n_samples=n_samples)
+        return 2**self.dim * self.stdT.pdf(y, Sigma=self.Omega) * self.stdT.impSamp_cdf(y1, mu=0.*self.mu, Sigma=self.Lambda, df=self.df+self.dim, n_samples=n_samples)
 
 
     def draw_sample(self):

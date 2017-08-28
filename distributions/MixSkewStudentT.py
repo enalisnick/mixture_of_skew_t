@@ -29,17 +29,17 @@ class MixSkewStudentT(object):
 
     def estimate(self, data, max_iterations=100):
         n,d = data.shape
-        assert d == self.components_dists[0].dim
+        assert d == self.component_dists[0].dim
 
-        params = {'tau':np.zeros(n,self.nb_components), 
-                  'e':[np.zeros(n,self.nb_components) for i in xrange(4)]
+        params = {'tau':np.zeros((n,self.nb_components)), 
+                  'e':[np.zeros((n,self.nb_components)) for i in xrange(4)]
                   }
 
         for k in range(max_iterations):
             params = self.perform_E_step(data, params)
             self.perform_M_step(data, params)
 
-        return params
+        return 
 
 
     def perform_E_step(self, Y, params, terms_in_int_approx=5):
@@ -62,7 +62,8 @@ class MixSkewStudentT(object):
                     for s in xrange(r):
                         S += ((-1)**(2*r-s-1) / r) * (gamma(r+1)/(gamma(s+1)*gamma(r-s+1))) * gamma((self.component_dists[h].df + self.dim)/2. + s) / gamma((self.component_dists[h].df + 2.*self.dim)/2. + s) * self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].get_c(Y[j]), mu=0., Sigma=((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/(self.component_dists[h].df + self.dim + 2.*s))*self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2.*s)  
 
-                params['e'][0][j,h] = digamma(self.component_dists[h].df/2. + self.dim) - np.log((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/2.) - T_inv(y)*S
+                # Question: Is T_inv the inverse CDF or 1/CDF?  Following code assumes the latter
+                params['e'][0][j,h] = digamma(self.component_dists[h].df/2. + self.dim) - np.log((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/2.) - S/self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim)
 
                 params['e'][1][j,h] = (self.component_dists[h].df + self.dim)/(self.component_dists[h].df + self.component_dists[h].get_d(Y[j])) * \
                     self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2)/\
@@ -77,11 +78,11 @@ class MixSkewStudentT(object):
                     Sigma_minus_d = np.delete(np.delete(self.component_dists[h].Sigma, d, axis=0), d, axis=1)
                     sigma_d = np.delete(self.component_dists[h].Sigma[:,d], d, axis=0)
 
-                    a_star = (mu_temp-a) - (mu_temp-a) * 1./self.component_dists[h].Sigma[d,d]
+                    a_star = (mu_minus_d-a) - (mu_minus_d-a) * 1./self.component_dists[h].Sigma[d,d]
                     Sigma_star = (self.component_dists[h].df + 1./self.component_dists[h].Sigma[d,d] * (self.component_dists[h].mu[d] - a)**2)/(self.component_dists[h].df-1) *\
                         Sigma_minus_d - 1./self.component_dists[h].Sigma[d,d] * np.dot(sigma_d, sigma_d.T)
 
-                    xi[d] = 1./(2*np.pi*self.component_dists[h].Sigma[d,d]) * (self.component_dists[h].df/(self.component_dists[h].df+(1./self.component_dists[h].Sigma[d,d])*(self.component_dists[h].mu[d] - a)**2))**((self.component_dists[h].df-1)/2.) * np.sqrt(self.component_dists[h].df/2) * gamma((self.component_dists[h].df-1)/2.)/gamma(self.component_dists[h].df/2.) * self.component_dists[h].stdT.impSamp_cdf(a_star, mu = 0., Sigma = Sigma_star, df=self.component_dists[h].df-1)
+                    xi[d] = 1./(2*np.pi*self.component_dists[h].Sigma[d,d]) * (self.component_dists[h].df/(self.component_dists[h].df+(1./self.component_dists[h].Sigma[d,d])*(self.component_dists[h].mu[d] - a)**2))**((self.component_dists[h].df-1)/2.) * np.sqrt(self.component_dists[h].df/2) * gamma((self.component_dists[h].df-1)/2.)/gamma(self.component_dists[h].df/2.) * self.component_dists[h].stdT.impSamp_cdf(a_star, mu = np.zeros((Sigma_star.shape[0],)), Sigma = Sigma_star, df=self.component_dists[h].df-1)
 
                 epsilon = 1./c * np.dot(self.component_dists[h].Sigma, xi)
                 E_x = self.component_dists[h].mu + epsilon
