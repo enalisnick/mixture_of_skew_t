@@ -45,9 +45,9 @@ if __name__ == '__main__':
 
     # DATA PARAMS
     ### true model
-    means = [np.array([20.,20.]), np.array([-20.,-20.])]
+    means = [np.array([[20.,20.]]), np.array([[-20.,-20.]])]
     covs = [np.array([[2., 0.],[0., 3.]]), np.eye(args_dict['dimensionality'])]
-    skews = [np.array([1.2, 4.5]), np.array([2., 6.])]
+    skews = [np.array([[1.2, 4.5]]), np.array([[2., 6.]])]
     weights = [.1, .9]
     dfs = [2.5, 4]
     n_data = 10
