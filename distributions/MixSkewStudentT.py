@@ -60,17 +60,17 @@ class MixSkewStudentT(object):
                 for r in xrange(terms_in_int_approx):
                     r += 1
                     for s in xrange(r):
-                        S += ((-1)**(2*r-s-1) / r) * (gamma(r+1)/(gamma(s+1)*gamma(r-s+1))) * gamma((self.component_dists[h].df + self.dim)/2. + s) / gamma((self.component_dists[h].df + 2.*self.dim)/2. + s) * self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].get_c(Y[j]), mu=0., Sigma=((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/(self.component_dists[h].df + self.dim + 2.*s))*self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2.*s)  
+                        S += ((-1)**(2*r-s-1) / r) * (gamma(r+1)/(gamma(s+1)*gamma(r-s+1))) * gamma((self.component_dists[h].df + self.dim)/2. + s) / gamma((self.component_dists[h].df + 2.*self.dim)/2. + s) * self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].get_c(Y[j]), mu=np.zeros((Y[j].shape[0],)), Sigma=((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/(self.component_dists[h].df + self.dim + 2.*s))*self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2.*s)  
 
                 # Question: Is T_inv the inverse CDF or 1/CDF?  Following code assumes the latter
-                params['e'][0][j,h] = digamma(self.component_dists[h].df/2. + self.dim) - np.log((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/2.) - S/self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim)
+                params['e'][0][j,h] = digamma(self.component_dists[h].df/2. + self.dim) - np.log((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/2.) - S/self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=np.zeros((Y[j].shape[0],)), Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim)
 
                 params['e'][1][j,h] = (self.component_dists[h].df + self.dim)/(self.component_dists[h].df + self.component_dists[h].get_d(Y[j])) * \
-                    self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2)/\
-                    self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=0., Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim)
+                    self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=np.zeros((Y[j].shape[0],)), Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2)/\
+                    self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=np.zeros((Y[j].shape[0],)), Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim)
 
                 # compute moment E[x]
-                c = self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].mu - a, mu = 0.)
+                c = self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].mu - a, mu = np.zeros((self.component_dists[h].mu.shape[0],)))
                 xi = np.zeros(self.component_dists[h].mu.shape)
 
                 for d in range(self.dim):
