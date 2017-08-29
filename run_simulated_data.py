@@ -49,8 +49,8 @@ if __name__ == '__main__':
     covs = [np.array([[2., 0.],[0., 3.]]), np.eye(args_dict['dimensionality'])]
     skews = [np.array([1.2, 4.5]), np.array([2., 6.])]
     weights = [.1, .9]
-    dfs = [2,3]
-    n_data = 10000
+    dfs = [2.5, 4]
+    n_data = 10
 
     ### simulate data from true model
     true_model = MixSkewStudentT(mus=means, Sigmas=covs, nb_components=args_dict['nb_components'], deltas=skews, dfs=dfs, weights=weights)

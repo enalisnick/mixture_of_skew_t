@@ -6,7 +6,7 @@ from StudentT import *
 
 class SkewStudentT(object):
 
-    def __init__(self, mu=np.zeros(2,), Sigma=np.eye(2), delta=np.ones(2,), df=1): 
+    def __init__(self, mu=np.zeros(2,), Sigma=np.eye(2), delta=np.ones(2,), df=3): 
         
         # fancy init here
         dim = Sigma.shape[0]

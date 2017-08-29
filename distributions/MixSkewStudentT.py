@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.linalg import inv
 from scipy.special import digamma, gamma
 from scipy.optimize import minimize_scalar
 
@@ -7,13 +8,11 @@ from SkewStudentT import SkewStudentT
 
 class MixSkewStudentT(object):
 
-    def __init__(self, dim=1, nb_components=2, weights=None, mus=None, Sigmas=None, deltas=None, dfs=None): 
+    def __init__(self, nb_components=2, weights=None, mus=None, Sigmas=None, deltas=None, dfs=None): 
         
         # check parameters are correct
         assert nb_components > 1
                 
-
-        self.dim = dim
         self.nb_components = nb_components
 
         if weights == None:
@@ -26,18 +25,24 @@ class MixSkewStudentT(object):
         else:
             self.component_dists = [SkewStudentT(mu=mus[k], Sigma=Sigmas[k], delta=deltas[k], df=dfs[k]) for k in range(self.nb_components)]
 
+        self.dim = self.component_dists[0].mu.shape[0]
+
 
     def estimate(self, data, max_iterations=100):
         n,d = data.shape
         assert d == self.component_dists[0].dim
 
         params = {'tau':np.zeros((n,self.nb_components)), 
-                  'e':[np.zeros((n,self.nb_components)) for i in xrange(4)]
+                  'e':[np.zeros((n,self.nb_components)), np.zeros((n,self.nb_components)), np.zeros((n,self.nb_components, self.dim)), np.zeros((n,self.nb_components, self.dim))]
                   }
 
+        print "Running E.M. for %d iterations..." %(max_iterations)
         for k in range(max_iterations):
+
             params = self.perform_E_step(data, params)
             self.perform_M_step(data, params)
+
+            print "%d. Log Likelihood: %.4f" %(k+1, np.log(self.pdf(data)))
 
         return 
 
@@ -62,7 +67,6 @@ class MixSkewStudentT(object):
                     for s in xrange(r):
                         S += ((-1)**(2*r-s-1) / r) * (gamma(r+1)/(gamma(s+1)*gamma(r-s+1))) * gamma((self.component_dists[h].df + self.dim)/2. + s) / gamma((self.component_dists[h].df + 2.*self.dim)/2. + s) * self.component_dists[h].stdT.impSamp_cdf(self.component_dists[h].get_c(Y[j]), mu=np.zeros((Y[j].shape[0],)), Sigma=((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/(self.component_dists[h].df + self.dim + 2.*s))*self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim+2.*s)  
 
-                # Question: Is T_inv the inverse CDF or 1/CDF?  Following code assumes the latter
                 params['e'][0][j,h] = digamma(self.component_dists[h].df/2. + self.dim) - np.log((self.component_dists[h].df + self.component_dists[h].get_d(Y[j]))/2.) - S/self.component_dists[h].stdT.impSamp_cdf(Y[j], mu=np.zeros((Y[j].shape[0],)), Sigma=self.component_dists[h].Lambda, df=self.component_dists[h].df+self.dim)
 
                 params['e'][1][j,h] = (self.component_dists[h].df + self.dim)/(self.component_dists[h].df + self.component_dists[h].get_d(Y[j])) * \
@@ -87,7 +91,7 @@ class MixSkewStudentT(object):
                 epsilon = 1./c * np.dot(self.component_dists[h].Sigma, xi)
                 E_x = self.component_dists[h].mu + epsilon
 
-                params['e'][2][j,h] = e[1][j,h] * E_x
+                params['e'][2][j,h] = params['e'][1][j,h] * E_x
 
                 # compute moment E[xx]
                 H = np.zeros((self.dim, self.dim))
@@ -166,10 +170,21 @@ class MixSkewStudentT(object):
             def df_eq(x):
                 return np.log(x/2.) - digamma(x/2.) + 1. - tmp
             
-            result = minimize_scalar(df_eq, bounds=(0, 100))
+            result = minimize_scalar(df_eq, bounds=(2, 100))
             self.component_dists[h].df = result.x
 
         return 
+
+
+    def pdf(self, X):
+        prob = 1.
+        for n in range(X.shape[0]):
+            point_prob = 0.
+            for k in range(self.nb_components):
+                point_prob += self.weights[k] * self.component_dists[k].pdf(X[n])
+            prob *= point_prob
+
+        return prob
 
 
     def draw_sample(self, nb_samples=500):

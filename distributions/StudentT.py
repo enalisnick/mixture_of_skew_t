@@ -4,14 +4,14 @@ from math import *
 
 class StudentT(object):
 
-    def __init__(self, mu=np.zeros(2,), Sigma=np.eye(2), delta=np.ones(2,), df=1): 
+    def __init__(self, mu=np.zeros(2,), Sigma=np.eye(2), delta=np.ones(2,)*4, df=1): 
         
         # fancy init here
         dim = Sigma.shape[0]
 
         # check that parameters are correct sizes
         assert dim == mu.shape[0] 
-        assert df > 0
+        assert df > 2
 
         self.dim = dim
         self.mu = mu
