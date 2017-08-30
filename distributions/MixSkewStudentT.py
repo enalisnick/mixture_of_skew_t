@@ -32,12 +32,11 @@ class MixSkewStudentT(object):
         n,d = data.shape
         assert d == self.component_dists[0].dim
 
-        params = {'tau':np.zeros((n,self.nb_components)), 
-                  'e':[np.zeros((n,self.nb_components)), np.zeros((n,self.nb_components)), np.zeros((n, self.nb_components, self.dim)), np.zeros((n, self.nb_components, self.dim, self.dim))]
-                  }
-
         print "Running E.M. for %d iterations..." %(max_iterations)
         for k in range(max_iterations):
+
+            params = {'tau':np.zeros((n,self.nb_components)),
+                  'e':[np.zeros((n,self.nb_components)), np.zeros((n,self.nb_components)), np.zeros((n, self.nb_components, self.dim)), np.zeros((n, self.nb_components, self.dim, self.dim))]}
 
             params = self.perform_E_step(data, params)
             self.perform_M_step(data, params)
@@ -91,7 +90,7 @@ class MixSkewStudentT(object):
                 epsilon = 1./c * np.dot(xi, self.component_dists[h].Sigma)
                 E_x = self.component_dists[h].mu + epsilon
 
-                params['e'][2][j,h] = params['e'][1][j,h] * E_x
+                params['e'][2][j,h,:] = params['e'][1][j,h] * E_x
 
                 # compute moment E[xx]
                 H = np.zeros((self.dim, self.dim))
@@ -135,13 +134,15 @@ class MixSkewStudentT(object):
     def perform_M_step(self, Y, params):
         n,d = Y.shape
 
+        updates = {'mu_s':[], 'Sigma_s':[], 'delta_s':[], 'df_s':[]}
+
         for h in range(self.nb_components):
 
             ### update mean
-            mu_numerator = 0.
+            mu_numerator = np.zeros((1, self.dim))
             mu_denominator = 0.            
             for j in range(n):
-                mu_numerator += params['tau'][j,h] * (params['e'][1][j,h]*Y[j] - self.component_dists[h].Delta * params['e'][2][j,h])
+                mu_numerator += params['tau'][j,h] * (params['e'][1][j,h]*Y[j] - np.dot(self.component_dists[h].Delta, params['e'][2][j,h,:]))
                 mu_denominator += params['tau'][j,h] * params['e'][1][j,h]
             
             self.component_dists[h].mu = mu_numerator / mu_denominator
@@ -150,19 +151,21 @@ class MixSkewStudentT(object):
             delta_partial1 = 0.
             delta_partial2 = 0.
             for j in range(n):
-                delta_partial1 += params['tau'][j,h] * params['e'][3][j,h]
-                delta_partial2 += params['tau'][j,h] * (Y[j] - self.component_dists[h].mu) * params['e'][2][j,h]
+                delta_partial1 += params['tau'][j,h] * params['e'][3][j,h,:,:]
+                delta_partial2 += params['tau'][j,h] * np.dot((Y[j] - self.component_dists[h].mu).T, params['e'][2][j,h, :][np.newaxis])
 
-            self.component_dists[h].delta = np.dot(inv(inv(self.component_dists[h].Sigma) * delta_partial1), np.diag(inv(self.component_dists[h].Sigma) * delta_partial2))
+            Sigma_inv = inv(self.component_dists[h].Sigma)
+            self.component_dists[h].delta = np.diag( np.dot( inv(np.multiply(Sigma_inv,  delta_partial1) + .001*np.eye(self.dim)), np.diag(np.diag(np.dot(Sigma_inv, delta_partial2)))) )
             self.component_dists[h].update_aux_params()  # need to recompute Lambda, Delta, Omega
 
             ### update Sigma
             tmp = np.zeros(self.component_dists[h].Sigma.shape)
             for j in range(n):
-                tmp += params['tau'][j,h] * np.dot(np.dot(self.component_dists[h].Delta, params['e'][3][j,h].T), self.component_dists[h].Delta.T)
-                tmp -= params['tau'][j,h] * np.dot(np.dot(Y[j] - self.component_dists[h].mu, params['e'][2][j,h].T), self.component_dists[h].Delta) 
-                tmp -= params['tau'][j,h] * np.dot(np.dot(self.component_dists[h].Delta, params['e'][2][j,h]), (Y[j] - self.component_dists[h].mu).T) 
-                tmp += params['tau'][j,h] * np.dot(Y[j] - self.component_dists[h].mu, (Y[j] - self.component_dists[h].mu).T) * params['e'][1][j,h]
+                tmp += params['tau'][j,h] * np.dot(np.dot(self.component_dists[h].Delta, params['e'][3][j,h, :, :].T), self.component_dists[h].Delta.T)
+                tmp -= params['tau'][j,h] * np.dot(np.dot((Y[j] - self.component_dists[h].mu).T, params['e'][2][j,h,:][np.newaxis]), self.component_dists[h].Delta) 
+                tmp -= params['tau'][j,h] * np.dot(np.dot(self.component_dists[h].Delta, params['e'][2][j,h,:][np.newaxis].T), (Y[j] - self.component_dists[h].mu)) 
+                tmp += params['tau'][j,h] * np.dot((Y[j] - self.component_dists[h].mu).T, Y[j] - self.component_dists[h].mu) * params['e'][1][j,h]
+
             self.component_dists[h].Sigma = tmp/np.sum(params['tau'][:,h])
 
         
