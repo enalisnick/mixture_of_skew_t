@@ -28,7 +28,7 @@ class MixSkewStudentT(object):
         self.dim = self.component_dists[0].dim
 
 
-    def estimate(self, data, max_iterations=100):
+    def estimate(self, data, max_iterations=10):
         n,d = data.shape
         assert d == self.component_dists[0].dim
 
@@ -178,7 +178,7 @@ class MixSkewStudentT(object):
             def df_eq(x):
                 return np.log(x/2.) - digamma(x/2.) + 1. - tmp
             
-            result = minimize_scalar(df_eq, bounds=(2, 100))
+            result = minimize_scalar(df_eq, bounds=(2, 100), method='bounded')
             self.component_dists[h].df = result.x
 
         return 
