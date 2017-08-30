@@ -176,7 +176,7 @@ class MixSkewStudentT(object):
             tmp = tmp/np.sum(params['tau'][:,h])
 
             def df_eq(x):
-                return np.log(x/2.) - digamma(x/2.) + 1. - tmp
+                return tmp - (np.log(x/2.) - digamma(x/2.) + 1.)
             
             result = minimize_scalar(df_eq, bounds=(2, 100), method='bounded')
             self.component_dists[h].df = result.x
